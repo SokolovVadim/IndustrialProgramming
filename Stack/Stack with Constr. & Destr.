@@ -1,0 +1,93 @@
+#include <iostream>
+//#ifdef NAN
+//#endif
+//#ifdef INFINITY
+//#endif
+//const size_t StackCap = 100;
+#define POISON tan(M_PI/2);
+
+typedef float StackType;
+
+struct Stack
+{
+	StackType *data;
+	size_t    size;
+	int count;
+	int top;
+	Stack(struct Stack *stack, size_t size);
+	~Stack();
+	void push(Stack *stack, StackType value);
+	StackType pop(Stack *stack, int value);
+	void StackOk(const Stack* stack, StackType *data, int top, int size);
+};
+
+
+Stack::Stack(struct Stack *stack, size_t size)
+{
+	stack->top = 0;
+	stack->data = (StackType*)calloc(sizeof(StackType), size);
+}
+
+
+
+void push(Stack *stack, StackType value)
+{
+	stack->data[stack->count] = value;
+}
+
+
+
+StackType pop(Stack *stack, int value)
+{
+	return stack->data[value];
+}
+
+
+void StackOk(const Stack* stack, StackType *data, int top, int size)
+{
+	/*if (stack)
+	{
+		printf("Stack status: ok\n");
+		if (stack->data)
+		{
+			printf("Array data status: ok\n");
+			if (stack->top)
+			{
+				printf("Stack is not overfloving\n");
+				for (short counter(0); counter < top; ++counter)
+					printf("\t\tdata[%d]=%l\n", counter, data[counter]);
+				return true;
+			}
+		}
+	}*/
+	if(stack)
+		printf("Stack status: ok\n");
+	else
+		printf("Stack status: WARNING!\n");
+	if (stack->data)
+		printf("Array data status: ok\n");
+	else
+		printf("Array data status: WARNING!\n");
+	if (stack->top)
+		printf("Stack is not overfloving\n");
+	else
+		printf("Warning! Stack is overfloving!\n");
+	for (short counter(0); counter < top; ++counter)
+		printf("\t\tdata[%d]=%l\n", counter, data[counter]);
+}
+
+
+Stack::~Stack()
+{
+	free(data);
+	printf("A destructor was called\nStatus: free(data)\n");
+}
+
+
+
+int main()
+{
+
+	system("pause");
+	
+}

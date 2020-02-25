@@ -1,0 +1,205 @@
+ #include <iostream>
+ #include <cassert>
+ #include <Windows.h>
+ #include <Mmsystem.h>
+ #include <conio.h>
+ #include "ASMHeader.h"
+ #pragma comment(lib, "winmm.lib")
+
+int main()
+{
+	FopenFiles();
+
+	/* PlayKotik();*/
+
+	long size = Size();
+	char *buff = Read(size);
+	short countstr = Sizestr(buff, size);
+
+	Asm(buff, countstr, size);
+
+	/*system("pause");*/
+}
+
+ void PlayKotik()
+ {
+	PlaySoundA    ("Mew.wav", NULL , SND_FILENAME | SND_ASYNC |SND_LOOP);
+	PlaySoundA    ("Antihype.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+ }
+
+ void FopenFiles()
+ {
+ 	fopen_s(&Fin,  "INPUT.txt", "rb");
+ 	fopen_s(&Fout, "OUTPUT.txt", "w");
+	fopen_s(&Text, "TEXT.txt", "w");
+	fopen_s(&Bin,  "BINOUT.txt", "wb");
+ }
+
+ char* Read(long size)
+ {
+	 assert(size != POISON);
+   /*!!*/  char* buff = (char *) calloc(size, sizeof(char));
+
+	 fread(buff, sizeof(char), size, Fin);
+
+ 	 return buff;
+ }
+
+ long Size()
+ {
+	 assert(Fin);
+	 fseek(Fin, NULL, SEEK_END);
+
+
+	 long size(ftell(Fin));
+	 size++;
+
+	 fseek(Fin, NULL, SEEK_SET);
+	 return size;
+ }
+
+ inline bool check(char *a)
+ {
+	 return (a == NULL) ? false : true;
+ }
+
+ short Sizestr(char *buff, long size)// strchr
+ {
+	 assert(buff != nullptr);
+	 assert(size > 0);
+ 	 short countstr(0);
+ 	 for (short counter(0); counter < size; counter++)
+ 	 {
+ 	     if (buff[counter] == '\n')
+ 		 {
+ 			 buff[counter] = '\0';
+ 			 countstr++;
+ 		 }
+ 	 }
+ 	 return countstr;
+ }
+
+ void Asm(char *buff, short countstr, long size)
+ {
+	 int  counter    (0);
+	 int  differ     (0);
+	 int  newcounter (0);
+	 int  num        (0);
+	 char buffer     [SIZEBUFF];
+	 char* binbuff = (char*)calloc(size * sizeof(double), sizeof(double));
+	 while (counter < size)
+	 {
+		 (sscanf_s(buff, "%s", buffer, SIZEBUFF));// put cmd in buffer
+
+		 differ = IncreasePtr(buff, buffer, counter);
+		 buff += differ;
+		 counter += differ;
+
+		 differ = CMP(buffer, buff, counter, binbuff);
+		 
+		 buff += differ;
+		 counter += differ;
+	 }
+	 
+
+	 /*
+	 CPU:
+
+	 while(arr[counter])
+	 {
+	 		 
+	 switch(arr[counter])
+	 case 1:
+		 double arg = *((double *)(arr + nowcounter + 1))
+		 nowcounter += 8
+
+		 ....
+		 	 
+	 nowcounter++;
+	 }
+	 */
+ }
+
+
+ int CMP(char buffer[SIZEBUFF], char *buff, long counter, char* binbuff)
+ {
+#include "Commands.h"
+#define CMD_DEF( name , num , sizearg, sizeelem, command)   \
+                 else if (!strcmp(buffer, #name)){\
+                      sscanf_s(buff, buffer, SIZEBUFF);             \
+                      Choice(num, sizearg, sizeelem, buffer, buff);        \
+                      }
+	   if (0)
+	   {
+	        ;
+	   }
+	   #include "CMD.h"
+	   else
+	   {
+		    fprintf(Fout, "Unknown command\n");
+			return POISON;
+	   }
+       #undef CMD_DEF   
+ }
+
+
+ void Print(int num, char name[SIZEBUFF])
+ {
+	 fprintf(Text, "%d\t", num); 
+	 fprintf(Fout,"%s\t", name);  
+ }
+
+
+
+
+ int Choice(int num, int sizearg, int sizeelem,
+	 char buffer[SIZEBUFF], char* buff)
+ {
+	 switch (sizearg)
+	 {
+	 case 0:
+	 {
+		 Print(num, buffer);
+		 return 0;
+	 }
+	 case 1:
+	 {
+		 sscanf_s(buff, buffer, SIZEBUFF);
+		 switch (sizeelem)
+		 {
+		 case sizeof(char):
+	     {
+			 ;
+		 }
+		 };
+	 }
+	 default:
+	 {
+		 return 0;
+	 }
+	 };
+ }
+
+
+
+
+ long IncreasePtr(char *buff, char buffer[SIZEBUFF], long counter)
+ {
+	 int differ = strlen(buffer) + 1;
+	 buff += differ;// increase pointer *buff
+	 if (*buff == '\0')// avoid '\0'
+	 {
+		 differ++;
+	 }
+	 return differ;
+ }
+
+
+
+ void PrintBuff(char buffer[SIZEBUFF], int counter)
+ {
+	 fprintf(Fout, "!");
+	 for (int i(0); i < counter; ++i)
+		 fprintf(Fout, "%c", buffer[i]);
+	 fprintf(Fout, "!");
+ }

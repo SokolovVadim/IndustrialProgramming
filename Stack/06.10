@@ -1,0 +1,121 @@
+#include <iostream>
+#include <math.h>
+#include <cassert>
+#include <cstdlib>
+//#ifdef INFINITY
+//#endif
+//const size_t StackCap = 100;
+typedef float StackType;
+
+struct Stack
+{
+	StackType *data;
+	int       size;
+	int       count;
+	int       top;
+
+};
+static int POISON = 1534029;
+static size_t FIASCO = 728333;
+
+void ConstructStack(Stack* stack);
+void DestructStack(StackType *data);
+void push(Stack *stack);
+void StackOk(struct Stack* stack, StackType *data, int top, int size);
+StackType pop(struct Stack *stack);
+
+
+
+int main()
+{
+	Stack StackTool = {};
+	ConstructStack(&StackTool);
+	/*push(&StackTool);
+	StackType digit = 0;*/
+
+	system("pause");
+}
+
+
+
+void ConstructStack(Stack* stack)
+{
+	assert(stack != NULL);
+	int size = POISON;
+	scanf_s("%d", stack->size);
+	/*if (stack->size == POISON)
+	{
+		printf("WARNING! size < 0\n");
+		abort();
+	}*/
+
+	/*stack->top = 0;
+	stack->data = (StackType*)calloc(sizeof(StackType), size);
+	assert(stack->data);*/
+}
+
+
+
+void push(Stack *stack)
+{
+	StackType value = POISON;
+	scanf_s("%l", value);
+	if (value<POISON)
+	{
+		stack->data[stack->top] = value;// (stack->top)++
+		stack->top++;
+	}
+	else
+	{
+		printf("WARNING! Value == POISON\n");
+	}
+}
+
+
+
+StackType pop(struct Stack *stack)
+{
+	assert(stack);
+	return stack->data[(stack->top)--];//!!!!!!!!--
+}
+
+
+void StackOk(struct Stack *stack, StackType *data, int top, int size)
+{
+	/*if (stack)
+	{
+		printf("Stack status: ok\n");
+		if (stack->data)
+		{
+			printf("Array data status: ok\n");
+			if (stack->top)
+			{
+				printf("Stack is not overfloving\n");
+				for (short counter(0); counter < top; ++counter)
+					printf("\t\tdata[%d]=%l\n", counter, data[counter]);
+				return true;
+			}
+		}
+	}*/
+	if(stack)
+		printf("Stack status: ok\n");
+	else
+		printf("Stack status: WARNING!\n");
+	if (stack->data)
+		printf("Array data status: ok\n");
+	else
+		printf("Array data status: WARNING!\n");
+	if (stack->top)
+		printf("Stack is not overfloving\n");
+	else
+		printf("Warning! Stack is overfloving!\n");
+	for (short counter(0); counter < top; ++counter)
+		printf("\t\tdata[%d]=%l\n", counter, data[counter]);
+}
+
+
+void DestructStack(StackType *data)
+{
+	free(data);
+	printf("A destructor was called\nStatus: free(data)\n");
+}

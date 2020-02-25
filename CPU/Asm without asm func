@@ -1,0 +1,104 @@
+ #include <iostream>
+ #include <cassert>
+ #include <Windows.h>
+ #include <Mmsystem.h>
+ #include "main.h"
+
+ FILE* Fin;
+ FILE* Fout;
+
+ void PlaySnd()
+ {
+	 Beep(3000, 5000);
+ }
+
+ void FopenFiles()
+ {
+ 	fopen_s(&Fin, "INPUT.txt", "rb");
+ 	fopen_s(&Fout, "OUTPUT.txt", "w");
+ }
+
+ char* Read()
+ {
+     char* buff;
+	 buff = (char *)calloc(size(), sizeof(char));
+
+	 fread(buff, sizeof(char), size(), Fin);
+
+ 	 fprintf(Fout, "%s", buff);
+
+ 	 return buff;
+ }
+
+ long size()
+ {
+	 fseek(Fin, NULL, SEEK_END);
+
+	 long size(ftell(Fin));
+	 size++;
+
+	 fseek(Fin, NULL, SEEK_SET);
+	 return size;
+ }
+
+
+ short DvdOnStr(char *buff, long size)
+ {
+ 	 short countstr(0);
+ 	 for (short counter(0); counter < size; counter++)
+ 	 {
+ 	     if (buff[counter] == '\n')
+ 		 {
+ 			 buff[counter] = '\0';
+ 			 countstr++;
+ 		 }
+ 	 }
+ 	 return countstr;
+ }
+
+ void Asm(char *buff, short countstr, long size, words *wtool)
+ {
+	 words* str = (words *)calloc(countstr, sizeof(*str));// array for *strings
+	 words* asmbuff = (words *)calloc(countstr, sizeof(*asmbuff));// array for *words 
+
+	 short cstr(0);
+
+	 for (short counter(0); counter < size; counter++)// all simbols
+	 {
+		 if (buff[counter] == '\0')
+		 {
+			 str[cstr].buffer = &buff[counter];// in array of pointers we put *string
+			 cstr++;
+		 }
+	 }
+
+
+	 
+
+	 for (short counter(0); counter < cstr; counter++)// check all *strings and find words & dig.
+	 {
+		 short countsimb(0);
+		 while (str[counter].buffer[countsimb]!='\0')// catch the string
+		 {
+			 short asmword(0);
+			 while ((str[counter].buffer[countsimb] != '\0') &&
+				 (isalpha(str[counter].buffer[countsimb])))// check isalpha
+			 {
+				 asmbuff[counter].asmbuffer[asmword] = str[counter].buffer[countsimb]; // stricmp
+				 asmword++;
+			 }
+
+			 countsimb++;// space :)
+
+			 short asmdigit(0);
+
+			 while ((str[counter].buffer[countsimb] != '\0') &&
+				 (isdigit(str[counter].buffer[countsimb])))// check isalpha
+			 {
+				 asmbuff[counter].digits[asmword] = (str[counter].buffer[countsimb]) -'0'; // stricmp
+				 asmdigit++;
+			 }
+
+		 }
+	 }
+ }

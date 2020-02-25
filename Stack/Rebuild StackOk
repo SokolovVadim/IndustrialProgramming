@@ -1,0 +1,429 @@
+ #include <iostream>
+ #include <math.h>
+ #include <cassert>
+ #include <cstdlib>
+ #include "Header1.h"
+ 
+
+ FILE* Ferr;
+ FILE* Fin;
+ FILE* Fout;
+
+
+ static int POISON = 1534029;
+ static int ERRORSIZE = 4;
+
+ void ConstructStack(Stack* stack);
+ void DestructStack (Stack* stack);
+ void FopenError    (Stack* stack);
+ void dump          (Stack* stack);
+ void StkAssert     (Stack* stack);
+ void PrintErr      (Stack* stack);
+ void Resize        (Stack* stack);
+ void Hash          (Stack* stack);
+ void PrintOk       (Stack* stack);
+
+ void FileOpen      ();
+
+ StackType push     (Stack *stack, StackType digit);
+ StackType pop      (Stack *stack);
+ StackType back     (Stack *stack);
+ int size           (Stack *stack);
+
+ bool clear         (Stack *stack);
+ bool WentOut       (Stack *stack);
+ bool StackOk       (Stack* stack);
+
+
+
+ int main()
+ {
+	 Stack             StackTool = {};
+	 FileOpen          ();
+	 FopenError        (&StackTool);
+	 ConstructStack    (&StackTool);
+	 push              (&StackTool, 1.197);
+	 pop               (&StackTool);
+	 push              (&StackTool, 1.337);
+	 WentOut           (&StackTool);
+	 Hash              (&StackTool);
+	 pop               (&StackTool);
+	 Hash              (&StackTool);
+	 WentOut           (&StackTool);
+	 push              (&StackTool, 9.1029);
+	 push              (&StackTool, 10.1239);
+	 dump              (&StackTool);
+	 Resize            (&StackTool);
+	 size              (&StackTool);
+	 push              (&StackTool, 11.987);
+	 push              (&StackTool, 19.987);
+	 push              (&StackTool, 17.987);
+	 pop(&StackTool);
+	 pop(&StackTool);
+	 pop(&StackTool);
+	 dump              (&StackTool);
+	 PrintErr          (&StackTool);
+ }
+
+
+
+ void ConstructStack(Stack* stack)
+ {
+	 assert(stack != NULL);
+	 stack->size = POISON;
+	 fscanf_s(Fin, "%d", &stack->size);
+
+	 if (stack->size == POISON)
+	 {
+		 printf("WARNING! size was not declared\n"
+		        "Please, scanf size again!");
+		 fscanf_s(Fin, "%d", &stack->size);
+	 }
+
+	 stack->cnrL = (StackType*)(&(stack->size) - 1);
+
+	 stack->top = 0;
+	 stack->data = (StackType*)calloc(sizeof(StackType), stack->size);
+	 assert(stack->data);
+	 stack->cnrRbefore = *(&stack->data + stack->size);
+ }
+
+
+
+ void FileOpen()
+ {
+	 fopen_s(&Fin, "INPUT.txt", "rb");
+	 fopen_s(&Fout, "OUTPUT.txt", "w");
+	 assert((Fin > 0) && (Fout > 0));
+ }
+
+ #pragma warning (push)
+ #pragma warning (disable: 6011)
+
+ void FopenError(Stack* stack)
+ {
+	 if (stack==nullptr)
+	 {
+		 return;
+	 }
+	 
+	 stack->error = (size_t*)calloc(ERRORSIZE, sizeof(size_t));
+	 if (stack->error)
+	 {
+		 for (int counter(0); counter < ERRORSIZE; counter++)
+			 stack->error[counter] = POISON;
+		 stack->summBefore = 0;
+	 }
+	 
+	 
+	 fopen_s(&Ferr, "ERRORLIST.txt", "w");
+	 assert(Ferr);
+ }
+
+
+ StackType push(Stack *stack, StackType digit)
+ {
+	 assert(digit);
+	 if (stack->top > stack->size - 1)
+	 {
+		 fprintf(Fout, "WARNING! top index is large than size\n");
+		 dump(stack);
+		 return -1;
+	 }
+	 else
+	 {
+		stack->data[stack->top++] = digit;
+		return stack->data[stack->top - 1];
+	 }
+ }
+
+
+
+ StackType pop(Stack *stack)
+ {
+	 if (stack->top > stack->size - 1)
+	 {
+		 fprintf(Fout, "WARNING! top index is large than size\n");
+		 dump(stack);
+		 PrintErr(stack);
+	 }
+	 return stack->data[(stack->top)--];
+ }
+
+
+ //++++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function returns latest element 
+ //!        and does not change top element      
+ //++++++++++++++++++++++++++++++++++++++++++++++//
+
+
+ StackType back(Stack *stack)
+ {
+	 dump(stack);
+	 assert(stack->top > 0);
+	 return stack->top;
+ }
+
+
+
+ int size(Stack *stack)
+ {
+	 dump(stack);
+	 assert(stack->size > 0);
+	 fprintf(Fout, "Stack size is: %d\n", stack->size);
+	 return stack->size;
+ }
+
+
+ bool clear(Stack *stack)
+ {
+	 dump(stack);
+	 free(stack->data);
+	 stack->size = 0;
+	 if (!stack->data)
+	 {
+		 fprintf(Fout, "Stack was cleared\n");
+		 dump(stack);
+		 return true;
+	 }
+	 else
+		 return false;
+ }
+
+
+
+ void Resize(Stack* stack)
+ {
+	 assert(stack);
+	 stack->top = 0;
+	 fscanf_s(Fin, "%d", &stack->size);
+	 if (stack->size < 0)
+	 {
+		 fprintf(Fout, "Warning! Function: %s Line: %ld"
+			 "\n Resize is incorrect", __FUNCSIG__, __LINE__);
+		 fscanf_s(Fin, "%d", &stack->size);
+	 }
+	 void* pointer = realloc(stack->data, stack->size);
+	 if (pointer)
+	 {
+		 stack->data = (StackType*)pointer;
+	 }
+	 else
+	 {
+		 fprintf(Fout, "Warning!"
+			 "Function: %s \nLine: %ld\nResize works incorrect!\n"
+			 "Data pointer was not realloced", __FUNCSIG__, __LINE__);
+	 }
+	 if (stack->data < 0)
+	 {
+		 fprintf(Fout, "Warning! Resize killed your stack!\n"
+		               "Line: %ld", __LINE__);
+		 dump(stack);
+		 PrintErr(stack);
+		 abort();
+	 }
+ }
+
+
+
+ //++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function makes "canary test"  
+ //!        If right side of data was changed, 
+ //!        canary has been killed      
+ //! @param cnrR
+ //! @param cnrL
+ //++++++++++++++++++++++++++++++++++++++++++++//
+
+ bool WentOut(Stack *stack)
+ {
+	 stack->cnrR = stack->data + 1;
+	 if (stack->cnrR != stack->cnrRbefore)
+	 {
+		 fprintf(Fout, "Warning! Right canary was killed!\n");
+		 fprintf(Ferr, "Error code: canary\n");
+		 return false;
+	 }
+	 stack->cnrRbefore = stack->cnrR;
+	 return true;
+ }
+
+
+ //++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function makes "hash test"    
+ //!        and prints error code after dump 
+ //! @param summBefore
+ //! @param summAfter
+ //++++++++++++++++++++++++++++++++++++++++++++//
+
+
+
+ void Hash(Stack *stack)
+ {
+	 for (short counter(0); counter < stack->size; counter++)
+	 {
+		 stack->summAfter += ((stack->data[counter]) - stack->top*stack->size)/stack->top;
+	 }
+	 if (stack->summAfter != stack->summBefore)
+	 {
+		 fprintf(Fout, "Hash was called!\n");
+		 dump(stack);
+		 PrintErr(stack);
+	 }
+	 stack->summBefore = stack->summAfter;
+ }
+
+ //#pragma warning (push)
+ //#pragma warning (disable: 6011)
+
+ void dump(Stack *stack)
+ {
+	 if (stack==nullptr)
+	 {
+		 fprintf(Fout, "Stack status: NULL\n");
+	 }
+	 else
+	 {
+		 if (stack->error==nullptr)// тернарный оператор
+		 {
+			 fprintf(Fout, "Stack status: WARNING!"
+				 "\nFile:%s \n Line: %ld \n", __FILE__, __LINE__);
+		 }
+		 else
+		 {
+			 if (stack->data==nullptr)
+			 {
+				 fprintf(Fout, "Array data status: NULL\n");
+			 }
+			 else
+			 {
+				 fprintf(Fout, "Array data status: OK");
+				 if (stack->top < stack->size)
+				 {
+					 fprintf(Fout, "Stack is not overflowing\n");
+				 }
+				 else
+				 {
+					 stack->error[2] = 1;
+					 fprintf(Fout, "Warning! Stack is overflowing!\n");
+				 }
+				 if (stack->top > 0)
+				 {
+					 fprintf(Fout, "Stack is not empty!\n");
+				 }
+				 else
+				 {
+					 stack->error[3] = 1;
+					 fprintf(Fout, "Warning! Stack is empty!\n");
+				 }
+				 for (short counter(0); counter < stack->top; ++counter)
+				 {
+					 fprintf(Fout, "\tdata[%d]=%lg\n", counter, stack->data[counter]);
+				 }
+			 }
+		 }
+	 }
+ }
+ //#pragma warning (pop)
+
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function print numbers of errors
+ //!        into Errorfile from array with error
+ //!        parameter flag save true if there were
+ //!        no mistakes
+ //! @param flag
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+
+ void PrintErr(Stack* stack)
+ {
+	 bool flag(true);
+	 for (short counter(0); counter < ERRORSIZE; counter++)
+	 {
+		 if (stack->error[counter] == 1)
+		 {
+			 fprintf(Ferr, "Error code: %d\n", counter);
+			 flag = false;
+		 }
+	 }
+	 /*if (flag)
+		 fprintf(ferr, "Status: OK\n");*/
+ }
+
+
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function calls loudly assert test 
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+
+
+ void StkAssert(Stack* stack)// write stack ok delete this funct. it deprecated
+ {
+	 assert(stack > 0);
+	 assert(stack->data > 0);
+	 assert(stack->top >= 0);
+	 assert(stack->top < stack->size);
+ }
+
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+ //! @brief This function calls dump if there were
+ //!        mistakes
+ //++++++++++++++++++++++++++++++++++++++++++++++++//
+
+
+ bool StackOk(Stack* stack)
+ {
+	 if (stack == nullptr)
+	 {
+		 fprintf(Fout, "Stack == nullptr!\n");
+		 return false;
+	 }
+	 else
+	 {
+		 if (stack->data == nullptr)
+		 {
+			 dump(stack);
+			 return false;
+		 }
+		 else
+		 {
+			 if (stack->top >= stack->size)
+			 {
+				 dump(stack);
+				 return false;
+			 }
+			 else
+			 {
+				 if (stack->top < 0)
+				 {
+					 dump(stack);
+					 return false;
+				 }
+				 else
+				 {
+					 StkAssert(stack);
+					 return true;
+				 }
+			 }
+		 }
+	 }
+ }
+
+
+ void PrintOk(Stack* stack)
+ {
+	 if (StackOk(stack))
+	 {
+		 fprintf(Fout, "Stack status: ok");
+		 dump(stack);
+	 }
+	 else
+		 fprintf(Fout, "Stack status: error!"); 
+ }
+
+
+ void DestructStack(Stack* stack)
+ {
+	 assert(stack->data);
+	 free(stack->data);
+	 fclose(Fin);
+	 fclose(Fout);
+	 fprintf(Fout, "A destructor was called\nStatus: free(data)\n");
+ }

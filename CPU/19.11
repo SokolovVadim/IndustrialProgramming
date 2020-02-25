@@ -1,0 +1,490 @@
+ #include <iostream>
+ #include <cassert>
+ #include <Windows.h>
+ #include <Mmsystem.h>
+ #include <conio.h>
+ #include <cstdlib>
+ #include "ASMHeader.h"
+ #pragma comment(lib, "winmm.lib")
+ 
+
+
+
+ #define ASSERT( BUFF , BUFFER )                                 \
+	 do {                                                        \
+	     if(!BUFF)                                               \
+         {                                                       \
+              fprintf(Log, "Warning! " #BUFF " is NULL\n");      \
+              exit(EXIT_FAILURE);                                \
+		 }                                                       \
+         if(!BUFFER)                                             \
+         {                                                       \
+	          fprintf(Log, "Warning! " #BUFFER " is NULL\n");    \
+              exit(EXIT_FAILURE);                                \
+         }                                                       \
+	 } while(0)
+
+
+
+//!++++++++++++++++++++++++++++++++++++++++++++++//
+//! @brief This macros receives two arguments 
+//!        and the param is NOT a log file.
+//!        For this situation you should use
+//!        assert() without macros
+//! @param FILEINPUT
+//! @param FILEOUTPUT
+//!++++++++++++++++++++++++++++++++++++++++++++++//
+
+#define ASSERTFILE( FILEIN, FILEOUT )                      \
+do                                                         \
+{                                                          \
+	if (FILEIN == nullptr)                                 \
+	{                                                      \
+		 fprintf(Log, "Warning! " #FILEIN " is NULL\n");   \
+	}                                                      \
+	if (FILEOUT == nullptr)                                \
+	{                                                      \
+		 fprintf(Log, "Warning! " #FILEOUT " is NULL\n");  \
+	}                                                      \
+} while(0)
+
+
+
+
+ int main()
+ {
+	 FopenFiles();
+
+	 /* PlayKotik();*/
+
+	 long size = Size();
+	 char *buff = Read(size);
+
+	 Asm(buff, size);
+
+	 /*system("pause");*/
+ }
+
+ void PlayKotik()
+ {
+	PlaySoundA    ("Mew.wav", NULL , SND_FILENAME | SND_ASYNC |SND_LOOP);
+	PlaySoundA    ("Antihype.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+ }
+
+ void FopenFiles()
+ {
+ 	fopen_s(&Fin,  "INPUT.txt", "rb");
+ 	fopen_s(&Fout, "OUTPUT.txt", "w");
+	fopen_s(&Text, "TEXT.txt", "w");
+	fopen_s(&Bin,  "BINOUT.txt", "wb");//     !!!!!!!!!!   wb
+	fopen_s(&Log, "LOGS.txt", "w");
+	if (Bin == nullptr)
+	{
+		exit(EXIT_FAILURE);
+	}
+ }
+
+ char* Read(long size)
+ {
+	 assert(size != POISON);
+	 char* buff;
+     char* pointer = (char *) calloc(size, sizeof(char));
+
+     if (pointer == nullptr)
+     {
+		 fprintf(Log, "WARNING! Buff was not declared!\n");
+		 return 0;
+	 }
+
+	 else
+	 {
+		 buff = pointer;
+		 fread(buff, sizeof(char), size, Fin);
+	 }
+
+ 	 return buff;
+ }
+
+ long Size()
+ {
+	 assert(Fin);
+	 fseek(Fin, NULL, SEEK_END);
+
+
+	 long size(ftell(Fin));
+	 size++;
+
+	 fseek(Fin, NULL, SEEK_SET);
+	 return size;
+ }
+
+
+
+
+ void Asm(char *buff, long size)
+ {
+	 assert(size > 0);
+
+	 int   counter(0);
+	 int   differ(0);
+	 int   newcounter(0);
+	 int   num(0);
+	 char  buffer[SIZEBUFF];
+	 char* binbuff;
+	 char* pointer = (char*)calloc(size * sizeof(double), sizeof(double));
+	 if (pointer == nullptr)
+	 {
+		 fprintf(Log, "WARNING! Binbuff was not declared!\n");
+	 }
+	 else
+	 {
+		 ASSERT(buff, pointer);
+		 binbuff = pointer;
+		 while (counter < size)
+		 {
+			 (sscanf_s(buff, "%s", buffer, SIZEBUFF));// put cmd in buffer
+			 fprintf(Bin, "%s\n", buffer);
+			 differ = IncreasePtr(buff, buffer);
+			 buff += differ;
+			 counter += differ;
+
+			 differ = CMP(buffer, buff, counter, binbuff);
+			 if (differ == -1)
+			 {
+				 break;
+			 }
+			 buff += differ;
+			 counter += differ;
+		 }
+	 }
+ }
+	 
+
+	 /*
+	 CPU:
+
+	 while(arr[counter])
+	 {
+	 		 
+	 switch(arr[counter])
+	 case 1:
+		 double arg = *((double *)(arr + nowcounter + 1))
+		 nowcounter += 8
+
+		 ....
+		 	 
+	 nowcounter++;
+	 }
+	 */
+ 
+ inline bool check(char *buff)
+ {
+	 return (buff == NULL) ? false : true;
+ }
+
+
+
+//
+//#define CASE(sizearg)                 \
+//            case sizearg:                      \
+//                {                              \
+//				     ;                  \
+//                };break;
+
+//#define CHOICE(buff, num, sizearg, sizeelem, buffer, counter, command)        \
+// {                                                                   \
+// switch(num)                                                         \
+// {                                                                   \
+//	 CASE(nullarg, command);                                        \
+//	 CASE(onearg, command);                                         \
+//	 /*......*/                                                      \
+// };                                                                   \
+//                                                                     \
+// }
+
+
+
+
+ int CMP(char buffer[SIZEBUFF], char *buff, long counter, char* binbuff)
+ {
+	 ASSERT(buff, buffer);
+	 if ((check(buff)) && (check(binbuff)) && (check(buffer)))
+	 {
+		#include "Commands.h"
+		#include "CMDFORDEF.h"
+
+	#define SWITCH( name , num , sizearg , sizeelem , command)                                       \
+    switch(sizearg)                                                                                  \
+	{                                                                                                \
+        CASE(cmd_pop, nullarg, DO(PRINT(Fout, name, \n); PRINTP(Text, %d\n, num)); return 0;)        \
+        CASE(cmd_end, endarg,  DO(PRINT(Fout, name, ); PRINTP(Text, %d, num)); return 0;)            \
+                                                                                                     \
+		CASE(cmd_popr, regarg, DO(SCAN(buff, %s, buffer); PRINTP(Fout, name %s\n, buffer)            \
+		PRINTP(Log, %s\n, buffer); PRINTF(Text, %d \t%d\n, num, REGSUB(buffer)); IND(buff, buffer))) \
+                                                                                                     \
+		CASE(cmd_resize, onearg, DO(SCAN(buff, %s, buffer); PRINTP(Fout, name %s\n, buffer)          \
+		PRINTP(Log, %s\n, buffer); PRINTF(Text, %d \t%s\n, num, buffer); IND(buff, buffer)))         \
+                                                                                                     \
+        CASE(cmd_begin, twoarg, DO(PRINT(Fout, name, \t); PRINTP(Text, %d\t, num);                   \
+		SCAN(buff, %s, buffer); PRINTP(Fout, \t%s\t, buffer);  PRINTP(Text, %d\t, SIGNSUB(buffer));  \
+		GETSEC(buff, buffer)))                                                                       \
+                                                                                                     \
+                                                   \
+                                                   \
+        default:                                                                                     \
+	    {                                                                                            \
+		    return 0;                                                                                \
+	    }                                                                                            \
+	}
+
+
+		 /* case cmd_label:
+		 {
+			 fprintf(Fout, #name " ");
+			 fprintf(Text, "%s", #name);
+			 sscanf_s(buff, "%s", buffer, SIZEBUFF);
+			 fprintf(Fout, "%s\n", buffer);
+			 fprintf(Text, "%s\n", buffer);
+			 int differ = IncreasePtr(buff, buffer);
+			 buff += differ;
+			 return differ;
+		 }*/
+
+		 // нужно написать закидывание в буфер binbuff с увеличением инкремента
+
+
+
+
+		/*case cmd_begin:
+		{
+			fprintf(Fout, #name " ");
+			fprintf(Text, "%d ", num);
+			sscanf_s(buff, "%s", buffer, SIZEBUFF);
+			fprintf(Fout, "%s", buffer);
+			fprintf(Text, "%d", buffer[0]- 'A' + buffer[1] - 'A');
+			int differ = IncreasePtr(buff, buffer);             
+			buff += differ;
+			sscanf_s(buff, "%s", buffer, SIZEBUFF);
+			differ += IncreasePtr(buff, buffer);
+			fprintf(Fout, "%s", buffer);
+			fprintf(Text, "%d", atoi(buffer));
+			return differ;
+		}*/
+		 //case cmd_add:                                                                         \
+		 			//{                                                                                     \
+			//	(sscanf_s(buff, "%s", buffer, SIZEBUFF));           \
+			//	fprintf(Log, "%s\n", buffer);                       \
+			//	fprintf(Fout, #name " %s\n", buffer);               \
+			//	fprintf(Text, "%d \t%d\n", num, buffer[0] - 'a');   \
+			//	int differ = IncreasePtr(buff, buffer);             \
+			//	return differ;                                      \
+			//} break;                                                  \
+
+
+
+
+#define CMD_DEF( name , num , sizearg , sizeelem , command)                             \
+                 else if (!strcmp(buffer, #name)){                                      \
+                         SWITCH( name, num , sizearg , sizeelem , command)              \
+                      }
+		 if (0)
+		 {
+			 ;
+		 }
+		 #include "CMD.h"
+		 else
+		 {
+			 fprintf(Fout, "Unknown command\n");
+			 return POISON;
+		 }
+		 #undef CMD_DEF
+	 }
+	 else
+	 {
+		 fprintf(Log, "Warning! CMP has a damaged argument!\n"
+			 "Line: %ld", __LINE__);
+		 return -1;
+	 }
+ }
+
+ 
+
+
+ 		//	case cmd_push:                                                                        \
+			//{                                                                                     \
+			//	fprintf(Fout, #name "\n");                                                        \
+			//	fprintf(Text, "%d\n", num);                                                       \
+			//	return 0;                                                                         \
+			//} break;                                                                              \
+			//case cmd_add:                                                                         \
+			//{                                                                                     \
+			//	(sscanf_s(buff, "%s", buffer, SIZEBUFF));           \
+			//	fprintf(Log, "%s\n", buffer);                       \
+			//	fprintf(Fout, #name " %s\n", buffer);               \
+			//	fprintf(Text, "%d \t%d\n", num, buffer[0] - 'a');   \
+			//	int differ = IncreasePtr(buff, buffer);             \
+			//	return differ;                                      \
+			//} break;                                                  \
+
+
+
+
+
+//#define CHOICE(buff, num, sizearg, sizeelem)                           \
+//		  do {                                                                    \
+//				switch(num)                                                        \
+//				{                                                                  \
+//			    case 1:	                                                   \
+//				{                                                                \
+//			         break;                                                       \
+//                                                                           \
+//                                                                           \
+//                                                                           \
+//                                                                           \
+//			    }                                                                \
+//                                                                           \
+//				case 2:	                                                   \
+//				{                                                                \
+//                    break;                                                       \
+//                                                                           \
+//                                                                           \
+//                                                                           \
+//                                                                           \
+//                }                                                                \
+//                                                                           \
+//                                                                           \
+//                                                                           \
+//			    /*......*/                                                        \
+//                default                                                           \
+//                {                                                                 \
+//                     break;                                                       \
+//                }                                                                 \
+//			    };                                                                 \
+//		                                                                       \
+//		 }while(0)
+//
+
+
+
+
+
+
+
+ int Choice(char* buff, int num, int sizearg,
+	 int sizeelem, char buffer[SIZEBUFF], int counter)
+ {
+	 return 0;
+ }
+
+
+
+ long IncreasePtr(char *buff, char buffer[SIZEBUFF])
+ {
+	 int differ = strlen(buffer) + 1;
+	 buff += differ;// increase pointer *buff
+	 if (*buff == '\n')// avoid '\0'
+	 {
+		 differ++;
+	 }
+	 return differ;
+ }
+
+
+
+ void Print(int num, char name[SIZEBUFF])
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 if (check(name))
+	 {
+		 fprintf(Text, "%d\n", num);
+		 fprintf(Fout, "%s\n", name);
+	 }
+	 else
+	 {
+		 fprintf(Log, "Warning! Print was crashed!\n");
+	 }
+ }
+
+
+ void Printbfr(int num, char name[SIZEBUFF])
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 if (check(name))
+	 {
+		 fprintf(Text, "%d\t", num);
+		 fprintf(Fout, "%s\t", name);
+	 }
+	 else
+	 {
+		 fprintf(Log, "Warning! Print was crashed!\n");
+	 }
+ }
+ 
+ void Printreg(char buffer[SIZEBUFF])
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 if(isalpha(buffer[0]))
+	 {
+		 fprintf(Fout, "!%s\n", buffer);
+		 fprintf(Text, "%d\n", (buffer[0] - 'a'));
+	 }
+ }
+
+ void Printi(char buffer[SIZEBUFF])
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 fprintf(Fout, "%s\n", buffer);
+	 fprintf(Text, "%d\n", atoi(buffer));
+ }
+
+ void Printd(char buffer[SIZEBUFF])
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 if (strtod(buffer, nullptr))
+	 {
+		 fprintf(Fout, "%s\n", buffer);
+		 fprintf(Text, "%lf\n", strtod(buffer, nullptr));
+	 }
+ }
+
+
+ void PrintBuff(char buffer[SIZEBUFF], int counter)
+ {
+	 ASSERTFILE(Fout, Text);
+	 assert(Log);
+	 fprintf(Fout, "!");
+	 for (int i(0); i < counter; ++i)
+		 fprintf(Fout, "%c", buffer[i]);
+	 fprintf(Fout, "!");
+ }
+
+
+ void  End(char *buff, char* binbuff, char buffer[SIZEBUFF])
+ {
+	 free(buff);
+	 free(binbuff);
+	 free(buffer);
+	 fclose(Fin);
+	 fclose(Fout);
+	 fclose(Bin);
+	 fclose(Log);
+	 fclose(Text);
+ }
+
+
+
+ #undef ASSERT
+ #undef PRINT
+ #undef PRINTP
+ #undef PRINTF
+ #undef SCAN
+ #undef IND
+ #undef REGSUB
+ #undef SIGNSUB
+ #undef GETSEC
+ #undef DO

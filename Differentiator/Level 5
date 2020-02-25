@@ -1,0 +1,497 @@
+#include "Differ.h"
+
+ int main()
+ {
+	FopenFiles();
+
+	size_t size = SizeofFile();
+
+	Tree *head = ConstrTree();
+
+	int flag = 0;
+
+
+	Separator(Read(size), head->root, head, true, &flag);
+
+
+	fprintf(Log, "HEAD->ROOT->DATA = %s\n", head->root->data);
+
+	//CreateTree(Read(size), 0, head, nullptr);
+
+	PrintDot(head);
+	PrintText(head);
+
+	fclose(Fin);
+	system("start Run.bat");
+	system("pause");
+ }
+
+
+ bool Brackets(Node* node, Tree* head, int position, char* buff, char** left, char** right, int* flag)
+ {
+	 int counter (position);
+	 int begin   (0);
+	 int end     (0);
+	 if ((buff[counter] == '/') || (buff[counter] == '*') || (buff[position] == '+') || (buff[position] == '-'))
+	 {
+		 while (buff[counter] != '\0')
+		 {
+			 if (buff[counter] == '(')
+			 {
+				 begin = counter;
+				 while (buff[counter] != '\0')
+				 {
+					 if (buff[counter] == ')')
+					 {
+						 end = counter;
+
+						 (*flag)++;
+
+						 fprintf(Log, "Begin = %d\tend = %d\t strlen = %d\telem = %c\n",
+						 begin, end, strlen(buff), buff[begin + 1]);
+
+						 strncpy_s(*left, SIZEBUFF, buff, begin - 2);
+						 strncat_s(*left, SIZEBUFF, buff + end + 1, strlen(buff) - end);
+						 fprintf(Log, "\nLEFT BRACK: %s\n\n", *left);
+						 strncpy_s(*right, SIZEBUFF, buff + begin, end - begin + 1);
+						 fprintf(Log, "\nRIGHT BRACK: %s\n\n", *right);
+
+						 if (node)
+							 fprintf(Log, "Brack node->data = %s\n", node->data);
+
+						 return true;
+					 }
+					 counter++;
+				 }
+			 }
+			 counter++;
+		 }
+	 }
+	 return false;
+ }
+
+
+ Node* CreateMinus(Tree* head, Node* node, char* left, char* right, char* middle, bool param, int* flag)
+ {
+	 Node* NewNode = (Node*)calloc(1, sizeof(Node));
+	 Node* LeftNode = (Node*)calloc(1, sizeof(Node));
+	 Node* RightNode = (Node*)calloc(1, sizeof(Node));
+
+	 ASSERT(NewNode);
+	 ASSERT(LeftNode);
+	 ASSERT(RightNode);
+
+	 char* minus = (char*)calloc(SIZEBUFF, sizeof(char));
+	 minus[0] = middle[0];
+
+	 char* ID = (char*)calloc(SIZEBUFF, sizeof(char));
+	 ASSERT(ID);
+	 _itoa_s(*flag, ID, SIZEBUFF, 10);
+
+	 strcat_s(minus, SIZEBUFF, "(");
+	 strcat_s(minus, SIZEBUFF, ID);
+	 strcat_s(minus, SIZEBUFF, ")");
+
+	 
+
+	 NewNode->data = minus;
+	 NewNode->Parent = node;
+	 if (param == false)
+		 node->Right = NewNode;
+	 else
+		 node->Left = NewNode;
+
+	 NewNode->Right = RightNode;
+	 NewNode->Left = LeftNode;
+
+	 LeftNode->data  = left;
+	 RightNode->data = right;
+
+	 LeftNode->Parent = NewNode;
+	 RightNode->Parent = NewNode;
+
+	 Separator (left, NewNode, head, true, flag);
+
+	 fprintf(Log, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+	 Separator (right, NewNode, head, false, flag);
+
+
+	 return NewNode;
+
+
+ }
+
+
+ char* Separator(char* buff, Node* node, Tree* head, bool param, int* flag)
+ {
+	 ASSERT(buff);
+	 char* buff_left_side  = (char*)calloc(SIZEBUFF, sizeof(char));
+	 char* buff_right_side = (char*)calloc(SIZEBUFF, sizeof(char));
+	 char* new_buffer      = (char*)calloc(SIZEBUFF, sizeof(char));
+
+	 ASSERT  (buff_left_side);
+	 ASSERT  (buff_right_side);
+	 ASSERT  (new_buffer);
+
+	 fprintf(Fout, "buff = %s\n", buff);
+
+	 int counter(0);
+	 while (buff[counter] != '\0')
+	 {
+		 if ((buff[counter] == '/') || (buff[counter] == '*') || (buff[counter] == '+') || (buff[counter] == '-'))
+		 {
+			 if (Brackets(node, head, counter, buff, &buff_left_side, &buff_right_side, flag))
+			 {
+				 new_buffer[0] = buff[counter];
+				 if (node)
+				 {
+					 if (param == true)
+						 CreateMinus(head, node, buff_left_side, buff_right_side, new_buffer, true, flag);
+					 else
+						 CreateMinus(head, node, buff_left_side, buff_right_side, new_buffer, false, flag);
+				 }
+				 else
+					 CreateNode(head, node, buff_left_side, buff_right_side, new_buffer, true, flag);
+			 }
+			 else
+			 {
+				 (*flag)++;
+				 new_buffer[0] = buff[counter];
+				 strncpy_s(buff_left_side, SIZEBUFF, buff, counter);
+				 strncpy_s(buff_right_side, SIZEBUFF, buff + counter + 1, strlen(buff) - counter);
+				 fprintf(Fout, "Step %d left: %s\n", *flag, buff_left_side);
+				 fprintf(Fout, "Step %d right: %s\n", *flag, buff_right_side);
+				 if (node)
+				 {
+					 if (param == true)
+						 CreateNode(head, node, buff_left_side, buff_right_side, new_buffer, true, flag);
+					 else
+					 {
+						 CreateNode(head, node, buff_left_side, buff_right_side, new_buffer, false, flag);
+					 }
+				 }
+				 else
+					 CreateNode(head, node, buff_left_side, buff_right_side, new_buffer, true, flag);
+			 }
+
+			 break;
+		 }
+		 counter++;
+	 }
+
+
+	 return buff;////!!!!!!!!!!!!!!!! return new buff
+ }
+
+
+ Node* CreateNode(Tree* head, Node* node, char* left, char* right, char* middle, bool param,int* flag)
+ {
+	 Node* NewNode   = (Node*)calloc(1, sizeof(Node));
+	 Node* LeftNode  = (Node*)calloc(1, sizeof(Node));
+	 Node* RightNode = (Node*)calloc(1, sizeof(Node));
+
+	 //fprintf(Log, "flsg: %d\n", *flag);
+
+	 NewNode->Left = LeftNode;
+	 NewNode->Right = RightNode;
+
+	 char* ID = (char*)calloc(SIZEBUFF, sizeof(char));
+	 ASSERT(ID);
+
+	 _itoa_s(*flag, ID, SIZEBUFF, 10);
+	 //fprintf(Log, "ID: %s\n", ID);
+
+	 strcat_s(middle, SIZEBUFF, "(");
+	 strcat_s(middle, SIZEBUFF, ID);
+	 strcat_s(middle, SIZEBUFF, ")");
+
+	 NewNode->data = middle;
+
+	 NewNode->Left->data = left;//2
+	 NewNode->Right->data = right;//6
+	 NewNode->Left->Parent = NewNode;//+
+	 NewNode->Right->Parent = NewNode;//+
+	 NewNode->Parent = node;
+
+	 if((node)&&(!param))
+		 node->Right = NewNode;//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 30.01
+	 if ((node) && (param))
+		 node->Left = NewNode;
+
+	 if (!node)
+	 {
+		 node = NewNode;
+		 head->root = NewNode;
+	 }
+
+	 fprintf(Log, "****************************\n"
+		 "Param = %d\n"
+		 "NewNode->Right = %s\n"
+		 "NewNode->Left  = %s\n"
+		 "****************************\n",
+		 param, NewNode->Right->data, NewNode->Left->data);
+
+	 if(CheckSimbol(left))
+		 Separator(left, NewNode, head, true, flag);
+	 if(CheckSimbol(right))
+		 Separator(right, NewNode, head, false, flag);
+
+	 return NewNode;
+ }
+
+
+
+ bool CheckSimbol(char* word)
+ {
+	 int counter(0);
+	 while (word[counter] != '\0')
+	 {
+		 if ((word[counter] == '/') || (word[counter] == '*') || (word[counter] == '+') || (word[counter] == '-'))
+		 {
+			 return true;
+			 
+		 }
+		 counter++;
+	 }
+	 return false;
+
+ }
+
+
+ void FopenFiles()
+ {
+	fopen_s(&Fin,  "INPUT.txt",  "r");
+	fopen_s(&Fout, "OUTPUT.txt", "w");
+	fopen_s(&Log,  "LOGOUT.txt", "w");
+	assert(Fin);
+	assert(Fout);
+	assert(Log);
+
+
+ }
+
+ Tree* ConstrTree()
+ {
+	 Tree* CurTree;
+	 void *pointer = calloc(1, sizeof(Tree));
+	 if (Checker(pointer))
+	 {
+		 CurTree = (Tree*)pointer;
+		 return CurTree;
+	 }
+	 else
+	 {
+		 fprintf(Log, "Warning! Tree was not constructed!\n");
+		 return nullptr;
+	 }
+ }
+
+
+ void Traversal(Node* node)
+ {
+	if (node->Left)
+	{
+		Traversal(node->Left);
+	}
+	else
+	{
+		if (node->Right)
+			Traversal(node->Right);
+		else
+		{
+			fprintf(Fout, "%s\n", node->data);
+		}
+	}
+ }
+
+ size_t SizeofFile()
+ {
+	ASSERT(Fin);
+
+	fseek(Fin, 0, SEEK_END);
+
+	int size(ftell(Fin));
+
+	fseek(Fin, 0, SEEK_SET);
+
+
+	assert(size > 0);
+
+	return size;
+ } 
+
+ char* Read(size_t size)
+ {
+	char* buffer = (char*)calloc(SIZEBUFF, sizeof(double));
+	ASSERT(buffer);
+
+	int CheckDigit = fread(buffer, sizeof(char), size, Fin);
+
+	buffer[size] = '\0';
+	fprintf(Fout, "BUFFER: %s\n", buffer);
+
+	BOOLCHECK(CheckValue(CheckDigit));
+
+	return buffer;
+ }
+
+ int CreateTree(char* buff, int position, Tree* head, Node* node)
+ {
+
+	 Node* NewNode = (Node*)calloc(1, sizeof(Node));
+
+	 char* firstbuffer = (char*)calloc(SIZEBUFF, sizeof(char));
+
+	 if (buff[position] == '(')
+	 {
+		 position += 1;// avoid '(' & '\"' simbols
+		 int counter(0);
+		 while ((buff[position] != '(') && (buff[position] != ')'))
+		 {
+			 if ((buff[position] != '\n') && (buff[position] != '\r')
+				 && (buff[position] != '\t') && (buff[position] != ' '))
+			 {
+				 firstbuffer[counter] = buff[position];
+				 counter++;
+			 }
+			 position++;
+		 }
+		 firstbuffer[counter] = '\0';
+		 fprintf(Log, "buff = %s\n", firstbuffer);
+		 NewNode = AddElem(head, node, firstbuffer);
+
+	 }
+
+	 for (; ;)
+	 {
+		 while ((buff[position] != '(') && (buff[position] != ')'))// Avoid space & \n
+		 {
+			 position++;
+		 }
+
+
+
+		 if (buff[position] == ')')
+		 {
+			 return position + 1;
+		 }
+
+
+
+		 if (buff[position] == '(')
+		 {
+			 position = CreateTree(buff, position, head, NewNode);
+		 }
+
+	 }
+
+ }
+
+ void AvoidSpace(char** buff)
+ {
+	 ASSERT(*buff);
+	 (*buff)++;
+	 while ((**buff) != '\0')
+	 {
+		 if (((**buff) == ' ') || ((**buff) == '\n'))
+			 (*buff)++;
+		 else
+			 break;
+	 }
+ }
+
+ Node* AddElem(Tree* head, Node* node, NodeType value)
+ {
+	 ASSERT(head);
+	 Node* NewNode = (Node*)calloc(1, sizeof(Node));
+
+	 NewNode->data = value;
+	 NewNode->Parent = node;
+	 head->counter++;
+
+	 if (head->root == nullptr)
+	 {
+		 head->root = NewNode;
+		 return NewNode;
+	 }
+
+	 if (!node->Left)
+		 node->Left = NewNode;
+	 else
+		 if (!node->Right)
+			node->Right = NewNode;
+
+	 return NewNode;
+ }
+
+ void PrintDot(Tree* head)
+ {
+	 assert(head);
+	 assert(head->root);
+	 fopen_s(&Dot, "DOTOUT.vg", "w");
+	 fprintf(Dot, "digraph Tree{\n");
+	 PrintGraph(head->root);
+	 fprintf(Dot, "\n}");
+	 fclose(Dot);
+ }
+
+ void PrintGraph(Node* node)
+ {
+	 if (node->Left)
+	 {
+		 fprintf(Dot, "\"%s\"", node->data);
+		 fprintf(Dot, "->\"%s\";\n", node->Left->data);
+		 PrintGraph(node->Left);
+	 }
+
+
+	 if (node->Right)
+	 {
+		 fprintf(Dot, "\"%s\"", node->data);
+		 fprintf(Dot, "->\"%s\";\n", node->Right->data);
+		 PrintGraph(node->Right);
+	 }
+ }
+
+ void PrintText(Tree* head)
+ {
+	 WriteTree(head->root);
+ }
+
+ void WriteTree(Node* node)
+ {
+	 fprintf(Fin, "(\"%s\"\n", node->data);
+	 if ((node->Left) || (node->Right))
+	 {
+		 if (node->Left)
+		 {
+			 WriteTree(node->Left);
+			 if (!(node->Right))
+				 fprintf(Fin, ")\n");
+		 }
+
+		 if (node->Right)
+		 {
+			 WriteTree(node->Right);
+			 fprintf(Fin, ")\n");
+		 }
+	 }
+	 else
+	 {
+		 if (node->Parent != nullptr)
+			 fprintf(Fin, ")\n");
+	 }
+ }
+
+ inline bool CheckValue(int value)
+ {
+	 if (value <= 0)
+		 return false;
+	 else
+		 return true;
+	 return true;
+ }
+
+ #undef ASSERT
+ #undef BOOLCHECK

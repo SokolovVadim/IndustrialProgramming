@@ -1,0 +1,336 @@
+ #include <iostream>
+ #include <cassert>
+ #include <Windows.h>
+ #include <Mmsystem.h>
+ #include <conio.h>
+ #include "ASMHeader.h"
+ #pragma comment(lib, "winmm.lib")
+
+int main()
+{
+	FopenFiles();
+
+	/* PlayKotik();*/
+
+	long size = Size();
+	char *buff = Read(size);
+	short countstr = Sizestr(buff, size);
+
+	Asm(buff, countstr, size);
+
+	/*system("pause");*/
+}
+
+ void PlayKotik()
+ {
+	PlaySoundA    ("Mew.wav", NULL , SND_FILENAME | SND_ASYNC |SND_LOOP);
+	PlaySoundA    ("Antihype.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+ }
+
+ void FopenFiles()
+ {
+ 	fopen_s(&Fin,  "INPUT.txt", "rb");
+ 	fopen_s(&Fout, "OUTPUT.txt", "w");
+	fopen_s(&Text, "Text.txt", "w");
+ }
+
+ char* Read(long size)
+ {
+	 assert(size != POISON);
+     char* buff = (char *) calloc(size, sizeof(char));
+
+	 fread(buff, sizeof(char), size, Fin);
+
+ 	 return buff;
+ }
+
+ long Size()
+ {
+	 assert(Fin);
+	 fseek(Fin, NULL, SEEK_END);
+
+
+	 long size(ftell(Fin));
+	 size++;
+
+	 fseek(Fin, NULL, SEEK_SET);
+	 return size;
+ }
+
+
+ short Sizestr(char *buff, long size)// strchr
+ {
+	 assert(buff != nullptr);
+	 assert(size > 0);
+ 	 short countstr(0);
+ 	 for (short counter(0); counter < size; counter++)
+ 	 {
+ 	     if (buff[counter] == '\n')
+ 		 {
+ 			 buff[counter] = '\0';
+ 			 countstr++;
+ 		 }
+ 	 }
+ 	 return countstr;
+ }
+
+
+ //char buff[] = "I'mabrother from ur another mother";
+ //char string[] = "                                            ";
+ //sscanf_s(buff, "%s", string, 11);
+
+ //printf_s("%s", string);
+
+ void Asm(char *buff, short countstr, long size)
+ {
+	 int  counter    (0);
+	 int  differ     (0);
+	 int  newcounter (0);
+	 int  num        (0);
+	 char buffer     [SIZEBUFF];
+	 char binstr     [SIZEBUFF];
+
+	 while (counter < size)
+	 {
+		 (sscanf_s(buff, "%s", buffer, SIZEBUFF));// put cmd in buffer
+
+		 differ = IncreasePtr(buff, buffer, counter);
+		 buff += differ;
+		 counter += differ;
+
+		 /*double digit(8);
+		 char arr[8] = 
+		 memcpy(&digit, arr, 1);*/
+
+		 newcounter = 0;
+
+		 differ = CMP(buffer, buff, counter);
+		 buff += differ;
+		 counter += differ;
+		 /*fprintf(Fout, "binstr[%d] = %c\n", newcounter, binstr[newcounter]);*/
+		 
+		 
+		/* fprintf(Fout, "%s\tdigit: %lg\n", buffer, digit);*/
+	 }
+
+
+	 /*
+	 		
+	 ASM:
+
+	 double x(8);
+	 char arr[8];
+	 arr[nowcounter] = 1;
+	 memcpy(&x, sizeof(double), arr);
+
+	 *((double *)(arr + nowcounter))
+
+
+	 CPU:
+
+	 while(arr[counter])
+	 {
+	 		 
+	 switch(arr[counter])
+	 case 1:
+		 double arg = *((double *)(arr + nowcounter + 1))
+		 nowcounter += 8
+
+		 ....
+		 	 
+	 nowcounter++;
+	 }
+	 */
+ }
+
+ /*                                                                          \
+                                                                          \
+                                                                          \
+                                                                          \
+                                                                          \*/
+
+
+
+
+ int CMP(char buffer[SIZEBUFF], char *buff, long counter)
+ {
+#include "Commands.h"
+#define CMD_DEF( name , num , sizearg)          \
+                 else if (!strcmp(buffer, #name)){      \
+			          fprintf(Text, "%d ", num);         \
+			          fprintf(Fout, #name " ");           \
+                      int increaser(0);                   \
+                      switch(sizearg)                      \
+                      {                                     \
+                           case 0:                           \
+                           {                                  \
+                                break;                         \
+                           }                                    \
+                           case 1:                               \
+                           {                                      \
+                                (sscanf_s(buff, "%s", buffer, SIZEBUFF));\
+                                increaser = (IncreasePtr(buff, buffer, counter)); \
+                                if(atof(buffer))                          \
+                                {                                          \
+                                      double digit = atof(buffer);          \
+                                      fprintf(Text, "%lf\n", digit);         \
+                                      fprintf(Fout, "%lf\n", digit);          \
+                                }                                              \
+                                return(increaser);                              \
+                                break;                                          \
+                                                                                 \
+                           }                                                      \
+                           case 2:                                                 \
+                           {                                                        \
+                                (sscanf_s(buff, "%s", buffer, SIZEBUFF));\
+                                increaser = (IncreasePtr(buff, buffer, counter));  \
+                                                                          \
+                                fprintf(Fout, "%s", buffer);               \
+                                fprintf(Text, "%d", (buffer[0] - 'A' + buffer[1] - 'A'));  \
+                                                                          \
+                                                                          \
+                                (sscanf_s(buff, "%s", buffer, SIZEBUFF));      \
+                                increaser+= IncreasePtr(buff, buffer, counter);   \
+                                                                          \
+                                if(atoi(buffer))                          \
+                                {                                          \
+                                      int digit = atoi(buffer);          \
+                                      fprintf(Text, "%d\n", digit);         \
+                                      fprintf(Fout, "%d\n", digit);          \
+                                }                                          \
+                                return(increaser);                              \
+                                break;                                          \
+                           }                                \
+                           default: return increaser;                          \
+	                                               \
+                      };\
+		         }
+       #define CMD_DEF2( name , num , sizearg)                \
+                 else if (!strcmp(buffer, #name)){             \
+			          fprintf(Text, "%d\n", num);               \
+			          fprintf(Fout, #name "\n");                \
+					  return num;                                \
+		         }	
+	
+	   if (0)
+	   {
+	        ;
+	   }
+
+	   #include "CMD.h"
+
+	   else
+	   {
+		    fprintf(Fout, "Unknown command\n");
+			return POISON;
+	   }
+       #undef CMD_DEF
+       #undef CMD_DEF2
+ }
+
+ long IncreasePtr(char *buff, char buffer[SIZEBUFF], long counter)
+ {
+	 int differ = strlen(buffer) + 1;
+	 buff += differ;// increase pointer *buff
+	 if (*buff == '\0')// avoid '\0'
+	 {
+		 differ++;
+	 }
+	 counter += differ;
+	 return differ;
+ }
+
+
+ long AvoidEnd(char *buff, long counter, long size)
+ {
+	 while ((counter < size) && ((isspace(buff[counter])) || (buff[counter] = '\0')))
+		 counter++;
+	 return counter;
+ }
+ long AvoidSpace(char *buff, long counter, long size)
+ {
+	 while ((counter < size) && (isspace(buff[counter])))
+		 counter++;
+	 return counter;
+ }
+
+ bool Alphacmp(int alphacount, char alphabuff[SIZEBUFF])
+ {
+	 if (alphacount)
+	 {
+		 #include "Commands.h"
+         #define CMD_DEF( name , num )\
+         else if (!strncmp(alphabuff, #name, (sizeof(#name) - 1))){         \
+			         fprintf(Text, "%d ", num);                             \
+			         fprintf(Fout, #name " ");                              \
+			         return true;											\
+		         }
+		 #define CMD_DEF2( name , num )\
+         else if (!strncmp(alphabuff, #name, (sizeof(#name) - 1))){         \
+			         fprintf(Text, "%d\n", num);                            \
+			         fprintf(Fout, #name "\n");                             \
+			         return true;											\
+		         }	
+		 if(0)
+		 {
+			 ;
+		 }
+
+         #include "CMD.h"
+		 
+		 else
+		 {
+			 fprintf(Fout, "Unknown command\n");
+		 }
+         #undef CMD_DEF
+         #undef CMD_DEF2
+	 }
+
+	 return false;
+ }
+
+ void PushValue(bool alphapush, long digitcount, char digitbuff[SIZEBUFF])
+ {
+	 int value(0);
+	 if ((digitcount))
+	 {
+		 value = atoi(digitbuff);
+		 fprintf(Text, "%d\n", value);
+		 fprintf(Fout, "%d\n", value);
+	 }
+ }
+
+ int DiffAlpha(char *buff, char alphabuff[SIZEBUFF], long counter)
+ {
+	 int alphacount(0);
+	 while (isalpha(buff[counter]))
+	 {
+		 alphabuff[alphacount] = buff[counter];
+		 alphacount++;
+		 counter++;
+	 }
+
+	 return alphacount;
+ }
+
+
+ void PrintBuff(char buffer[SIZEBUFF], int counter)
+ {
+	 fprintf(Fout, "!");
+	 for (int i(0); i < counter; ++i)
+		 fprintf(Fout, "%c", buffer[i]);
+	 fprintf(Fout, "!");
+ }
+
+
+ int DiffDigit(char *buff, char digitbuff[SIZEBUFF], long counter)
+ {
+	 int digitcount(0);
+	 while (isdigit(buff[counter]))
+	 {
+		 digitbuff[digitcount] = buff[counter];
+		 digitcount++;
+		 counter++;
+	 }
+	 return digitcount;
+ }

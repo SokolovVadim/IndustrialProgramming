@@ -1,0 +1,146 @@
+ #include <iostream>
+ #include <math.h>
+ #include <cassert>
+ #include <cstdlib>
+ //#ifdef INFINITY
+ //#endif
+ //const size_t StackCap = 100;
+
+ typedef double StackType;
+
+ struct Stack
+ {
+ 	StackType *data;
+ 	size_t    size;
+ 	int       count;
+	int       top;
+	FILE*     fin;
+	FILE*     fout;
+ };
+ static size_t POISON = 1534029;
+ static size_t FIASCO = 728333;
+
+ void ConstructStack(Stack* stack);
+ void DestructStack(Stack* stack);
+ void FileOpen(Stack* stack);
+ StackType push(Stack *stack);
+ void StackOk(struct Stack* stack, StackType *data, int top, int size);
+ StackType pop(struct Stack *stack);
+
+
+
+ int main()
+ {
+	 Stack StackTool = {};
+	 FileOpen(&StackTool);
+	 ConstructStack(&StackTool);
+	 StackType digit = push(&StackTool);
+ }
+
+
+
+ void ConstructStack(Stack* stack)
+ {
+	 assert(stack != NULL);
+	 stack->size = POISON;
+	 fscanf_s(stack->fin, "%d", &stack->size);
+
+	 if (stack->size == POISON)
+	 {
+		 printf("WARNING! size was not declared\n"
+		        "Please, scanf size again!");
+		 fscanf_s(stack->fin, "%d", &stack->size);
+	 }
+
+	 stack->top = 0;
+	 stack->data = (StackType*)calloc(sizeof(StackType), stack->size);
+	 assert(stack->data);
+ }
+
+
+
+ void FileOpen(Stack* stack)
+ {
+	 fopen_s(&stack->fin, "INPUT.txt", "rb");
+	 fopen_s(&stack->fout, "OUTPUT.txt", "w");
+	 assert(stack->fin);
+	 assert(stack->fout);
+ }
+
+
+
+ StackType push(Stack *stack)
+ {
+	 StackType value = POISON;
+	 assert(value);
+	 fscanf_s(stack->fin, "%lg", &value);
+
+	 if (value == POISON)
+	 {
+		 fprintf(stack->fout, "WARNING! Value == POISON\n"
+			                  "Please, scanf value gain!\n");
+		 fscanf_s(stack->fin, "%lg", &value);
+	 }
+	 else
+	 {
+		 if (stack->top > stack->size - 1)
+		 {
+			 fprintf(stack->fout, "WARNING! top index is large than size\n"
+				                  "Please, scanf value gain!\n");
+			 fscanf_s(stack->fin, "%lg", &value);
+		 }
+	 }
+
+	 stack->data[stack->top++] = value;
+	 return stack->data[stack->top - 1];
+ }
+
+
+
+ StackType pop(struct Stack *stack)
+ {
+	 assert(stack);
+	 return stack->data[(stack->top)--];//!!!!!!!!--
+ }
+
+
+ void StackOk(struct Stack *stack, StackType *data, int top, int size)
+ {
+	 /*if (stack)
+	 {
+	 printf("Stack status: ok\n");
+	 if (stack->data)
+	 {
+	 printf("Array data status: ok\n");
+	 if (stack->top)
+	 {
+	 printf("Stack is not overfloving\n");
+	 for (short counter(0); counter < top; ++counter)
+	 printf("\t\tdata[%d]=%l\n", counter, data[counter]);
+	 return true;
+	 }
+	 }
+	 }*/
+	 if (stack)
+		 fprintf(stack->fout, "Stack status: ok\n");
+	 else
+		 fprintf(stack->fout, "Stack status: WARNING!\n");
+	 if (stack->data)
+		 fprintf(stack->fout, "Array data status: ok\n");
+	 else
+		 fprintf(stack->fout, "Array data status: WARNING!\n");
+	 if (stack->top)
+		 fprintf(stack->fout, "Stack is not overfloving\n");
+	 else
+		 fprintf(stack->fout, "Warning! Stack is overfloving!\n");
+	 for (short counter(0); counter < top; ++counter)
+		 fprintf(stack->fout, "\t\tdata[%d]=%l\n", counter, data[counter]);
+ }
+
+
+ void DestructStack(Stack* stack)
+ {
+	 assert(stack->data);
+	 free(stack->data);
+	 fprintf(stack->fout, "A destructor was called\nStatus: free(data)\n");
+ }

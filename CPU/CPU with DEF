@@ -1,0 +1,309 @@
+ #include <iostream>
+ #include <cassert>
+ #include <Windows.h>
+ #include <Mmsystem.h>
+ #include <conio.h>
+ #include "Header.h"
+ #include "Commands.h"
+ #pragma comment(lib, "winmm.lib")
+
+
+//if (!strncmp(alphabuff, "begin", (sizeof("begin") - 1)))
+//{
+//	fprintf(Text, "%d ", begin);
+//	fprintf(Fout, "begin ");
+//	return true;
+//}
+
+ void PlaySnd()
+ {
+	PlaySoundA    ("Mew.wav", NULL , SND_FILENAME | SND_ASYNC |SND_LOOP);
+	PlaySoundA    ("Antihype.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+ }
+
+ void FopenFiles()
+ {
+ 	fopen_s(&Fin,  "INPUT.txt", "rb");
+ 	fopen_s(&Fout, "OUTPUT.txt", "w");
+	fopen_s(&Text, "Text.txt", "w");
+ }
+
+ char* Read(long size)
+ {
+     char* buff;
+	 buff = (char *)calloc(size, sizeof(char));
+
+	 fread(buff, sizeof(char), size, Fin);
+
+ 	 return buff;
+ }
+
+ long Size()
+ {
+	 fseek(Fin, NULL, SEEK_END);
+
+	 long size(ftell(Fin));
+	 size++;
+
+	 fseek(Fin, NULL, SEEK_SET);
+	 return size;
+ }
+
+
+ short Sizestr(char *buff, long size)
+ {
+ 	 short countstr(0);
+ 	 for (short counter(0); counter < size; counter++)
+ 	 {
+ 	     if (buff[counter] == '\n')
+ 		 {
+ 			 buff[counter] = '\0';
+ 			 countstr++;
+ 		 }
+ 	 }
+ 	 return countstr;
+ }
+
+
+
+ void Asm(char *buff, short countstr, long size)
+ {
+	 /*fprintf(Fout, "\n");*/
+	 char digitbuff[SIZEBUFF];
+	 char alphabuff[SIZEBUFF];
+	 for (long counter(0); counter < size; counter++)
+	 {
+		 while ((counter < size) && (!isspace(buff[counter])) && (buff[counter] != '\0'))
+		 {
+			 int alphacount(0);
+
+			 alphacount = DiffAlpha(buff, alphabuff, counter);
+			 counter += alphacount;
+
+			 counter = AvoidSpace(buff, counter, size);
+
+			/* PrintBuff(alphabuff, alphacount);*/
+			 //compare
+			 bool alphapush = Alphacmp(alphacount, alphabuff);
+			 
+			 int digitcount(0);
+
+			 digitcount = DiffDigit(buff, digitbuff, counter);
+			 counter += digitcount;
+			 
+			 counter = AvoidEnd(buff, counter, size);
+
+			 /*PrintBuff(digitbuff, digitcount);*/
+
+			 PushValue(alphapush, digitcount, digitbuff);
+
+
+
+			 counter = AvoidSpace(buff, counter, size);
+
+		 }
+		 counter = AvoidEnd(buff, counter, size);
+	 }
+ }
+
+
+ long AvoidEnd(char *buff, long counter, long size)
+ {
+	 while ((counter < size) && ((isspace(buff[counter])) || (buff[counter] = '\0')))
+		 counter++;
+	 return counter;
+ }
+ long AvoidSpace(char *buff, long counter, long size)
+ {
+	 while ((counter < size) && (isspace(buff[counter])))
+		 counter++;
+	 return counter;
+ }
+
+ bool Alphacmp(int alphacount, char alphabuff[SIZEBUFF])
+ {
+	 if (alphacount)
+	 {
+
+         #define CMD_DEF( name , num )\
+         else if (!strncmp(alphabuff, #name, (sizeof(#name) - 1))){         \
+			         fprintf(Text, "%d ", num);                             \
+			         fprintf(Fout, #name " ");                              \
+			         return true;											\
+		         }
+		 #define CMD_DEF2( name , num )\
+         else if (!strncmp(alphabuff, #name, (sizeof(#name) - 1))){         \
+			         fprintf(Text, "%d\n", num);                            \
+			         fprintf(Fout, #name "\n");                             \
+			         return true;											\
+		         }	
+		 if(0)
+		 {
+			 ;
+		 }
+         #include "CMD.h"
+		 else
+		 {
+			 fprintf(Fout, "Unknown command\n");
+		 }
+         #undef CMD_DEF
+         #undef CMD_DEF2
+		 
+         
+
+		 /*if (!strncmp(alphabuff, "push",   (sizeof("push") - 1)))
+		 {
+			 fprintf(Text, "%d ", push);
+			 fprintf(Fout, "push ");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "begin", (sizeof("begin") - 1)))
+		 {
+			 fprintf(Text, "%d ", begin);
+			 fprintf(Fout, "begin ");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "VS", (sizeof("VS") - 1)))
+		 {
+			 fprintf(Text, "%d ", VS);
+			 fprintf(Fout, "VS ");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "pop",     (sizeof("pop") - 1)))
+		 {
+			 fprintf(Text, "%d\n", pop);
+			 fprintf(Fout, "pop\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "back",   (sizeof("back") - 1)))
+		 {
+			 fprintf(Text, "%d\n", back);
+			 fprintf(Fout, "back\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "size",   (sizeof("size") - 1)))
+		 {
+			 fprintf(Text, "%d\n", size);
+			 fprintf(Fout, "size\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "resize", (sizeof("resize") - 1)))
+		 {
+			 fprintf(Text, "%d\n", resize);
+			 fprintf(Fout, "resize\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "clear", (sizeof("clear") - 1)))
+		 {
+			 fprintf(Text, "%d\n", clear);
+			 fprintf(Fout, "clear\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "jmp",     (sizeof("jmp") - 1)))
+		 {
+			 fprintf(Text, "%d\n", jmp);
+			 fprintf(Fout, "jmp\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "je",       (sizeof("je") - 1)))
+		 {
+			 fprintf(Text, "%d\n", je);
+			 fprintf(Fout, "je\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "ja",       (sizeof("ja") - 1)))
+		 {
+			 fprintf(Text, "%d\n", ja);
+			 fprintf(Fout, "ja\n");
+			 return true;
+		 }
+
+		 if (!strncmp(alphabuff, "end",     (sizeof("end") - 1)))
+		 {
+			 fprintf(Text, "%d", end);
+			 fprintf(Fout, "end");
+			 return true;
+		 }*/
+	 }
+	 return false;
+ }
+
+ void PushValue(bool alphapush, long digitcount, char digitbuff[SIZEBUFF])
+ {
+	 int value(0);
+	 if ((digitcount))
+	 {
+		 value = atoi(digitbuff);
+		 fprintf(Text, "%d\n", value);
+		 fprintf(Fout, "%d\n", value);
+	 }
+
+	 // value without push before
+	 /*if ((!alphapush) && (digitcount))
+	 {
+		 value = atoi(digitbuff);
+		 fprintf(Text, "%d\n", value);
+		 fprintf(Fout, "%d\n", value);
+	 }*/
+ }
+
+ int DiffAlpha(char *buff, char alphabuff[SIZEBUFF], long counter)
+ {
+	 int alphacount(0);
+	 while (isalpha(buff[counter]))
+	 {
+		 alphabuff[alphacount] = buff[counter];
+		 alphacount++;
+		 counter++;
+	 }
+
+	 return alphacount;
+ }
+
+
+ void PrintBuff(char buffer[SIZEBUFF], int counter)
+ {
+	 fprintf(Fout, "!");
+	 for (int i(0); i < counter; ++i)
+		 fprintf(Fout, "%c", buffer[i]);
+	 fprintf(Fout, "!");
+ }
+
+
+ int DiffDigit(char *buff, char digitbuff[SIZEBUFF], long counter)
+ {
+	 int digitcount(0);
+	 while (isdigit(buff[counter]))
+	 {
+		 digitbuff[digitcount] = buff[counter];
+		 digitcount++;
+		 counter++;
+	 }
+	 return digitcount;
+ }
+
+ int main()
+ {
+	 words StrTool = {};
+	 FopenFiles();
+
+	 /* PlaySnd();*/
+
+	 long size = Size();
+	 char *buff = Read(size);
+	 short countstr = Sizestr(buff, size);
+
+	 Asm(buff, countstr, size);
+
+	 /*system("pause");*/
+ }

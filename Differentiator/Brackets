@@ -1,0 +1,71 @@
+bool Brackets(Node* node, Tree* head, int position, char* buff, char** left, char** right, int* flag)
+ {
+	 Node* NewNode   = (Node*)calloc(1, sizeof(Node));
+	 Node* LeftNode  = (Node*)calloc(1, sizeof(Node));
+	 Node* RightNode = (Node*)calloc(1, sizeof(Node));
+
+	 ASSERT(NewNode);
+	 ASSERT(LeftNode);
+	 ASSERT(RightNode);
+
+	 char* minus = "-";
+
+	 int counter (position);
+	 int begin   (0);
+	 int end     (0);
+	 //fprintf(Log, "STRLEN%d\n", strlen(buff));
+	 if (buff[position] == '-')
+	 {
+		 while (buff[counter] != '\0')
+		 {
+			 if (buff[counter] == '(')
+			 {
+				 begin = counter;
+				 while (buff[counter] != '\0')
+				 {
+					 if (buff[counter] == ')')
+					 {
+						 end = counter;
+
+						 (*flag)++;
+
+						 fprintf(Log, "Begin = %d\tend = %d\t strlen = %d\telem = %c\n",
+							 begin, end, strlen(buff), buff[begin + 1]);
+
+						 strncpy_s(*left, SIZEBUFF, buff, begin - 2);
+						 strncat_s(*left, SIZEBUFF, buff + end + 1, strlen(buff) - end);
+						 fprintf(Log, "\nLEFT BRACK: %s\n\n", *left);
+						 strncpy_s(*right, SIZEBUFF, buff + begin, end - begin + 1);
+						 fprintf(Log, "\nRIGHT BRACK: %s\n\n", *right);
+
+						 NewNode->data = minus;
+						 NewNode->Parent = node;
+						 node->Right = NewNode;
+
+						 NewNode->Right = RightNode;
+						 NewNode->Left = LeftNode;
+
+						 LeftNode->data  = *left;
+						 RightNode->data = *right;
+
+						 LeftNode->Parent = NewNode;
+						 RightNode->Parent = NewNode;
+
+
+						 if (node)
+							 fprintf(Log, "Brack node->data = %s\n", node->data);
+
+						 //Separator(*left, NewNode, head, true, flag);
+						 //Separator(*right, NewNode, head, false, flag);
+
+						 return true;
+					 }
+					 counter++;
+				 }
+			 }
+
+			 counter++;
+		 }
+	 }
+	 return false;
+ }

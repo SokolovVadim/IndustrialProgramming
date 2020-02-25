@@ -1,0 +1,51 @@
+#include <iostream>
+//#ifdef NAN
+//#endif
+//#ifdef INFINITY
+//#endif
+//const size_t StackCap = 100;
+
+typedef float StackType;
+
+struct Stack
+{
+	StackType *data;
+	size_t    size;
+	int count;
+	int top;
+	Stack(struct Stack *stack, size_t size);
+	~Stack();
+	void push(struct Stack *stack, StackType value);
+};
+
+
+Stack::Stack(struct Stack *stack, size_t size)
+{
+	stack->top = 0;
+	stack->data = (StackType*)calloc(sizeof(StackType), size);
+}
+
+
+
+
+void push(struct Stack *stack, StackType value)
+{
+	stack->data[stack->count] = value;
+}
+
+
+
+
+Stack::~Stack()
+{
+	
+}
+
+
+
+int main()
+{
+
+	system("pause");
+	
+}

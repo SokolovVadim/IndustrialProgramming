@@ -1,0 +1,175 @@
+begin VS 5
+push 0
+push 0
+push 0
+popr cx
+popr bx
+popr ax
+pushr ax
+push 0
+jxx 1
+call 9
+: 5
+pushr dx
+fsqrt
+popr ex
+pushr bx
+push -1
+mul
+pushr ex
+add
+popr cx
+push 2
+pushr ax
+mul
+pushr cx
+div
+popr cx
+push -1
+pushr bx
+mul
+popr fx
+pushr ex
+pushr fx
+sub
+popr fx
+push 2
+pushr ax
+mul
+pushr fx
+div
+popr dx
+end
+call 2
+: 1
+call 7
+call 9
+: 7
+push 0
+pushr ax
+jxx 3
+ret
+: 8
+pushr bx
+push 0
+jxx 4
+ret
+: 9
+pushr bx
+pushr bx
+mul
+popr dx
+push 4
+pushr ax
+mul
+pushr cx
+mul
+popr ex
+pushr ex
+pushr dx
+sub
+popr dx
+push 0
+pushr dx
+jxx 5
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+popr ax
+popr bx
+popr cx
+popr dx
+popr ex
+popr fx
+popr gx
+popr hx
+call 2
+ret
+: 4
+push 0
+pushr bx
+jxx 6
+ret
+: 6
+push 0
+pushr cx
+jxx 10
+call 11
+end
+: 11
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+popr ax
+popr bx
+popr cx
+popr dx
+popr ex
+popr fx
+popr gx
+popr hx
+end
+end
+: 10
+pushr cx
+push 0
+jxx 14
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+push 666
+popr ax
+popr bx
+popr cx
+popr dx
+popr ex
+popr fx
+popr gx
+popr hx
+end
+ret
+: 14
+push 718
+push 718
+push 718
+push 718
+push 718
+push 718
+push 718
+push 718
+popr ax
+popr bx
+popr cx
+popr dx
+popr ex
+popr fx
+popr gx
+popr hx
+end
+: 3
+call 8
+pushr bx
+push -1
+pushr cx
+mul
+div
+popr dx
+push 0
+popr cx
+call 2
+: 2
+end

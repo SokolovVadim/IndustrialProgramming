@@ -1,0 +1,20 @@
+begin VS 5
+push 5
+popr ax
+push 1
+popr bx
+pushr bx
+popr cx
+: 1
+pushr bx
+pushr cx
+mul
+popr cx
+push 1
+pushr bx
+add
+popr bx
+pushr bx
+pushr ax
+jxx 1
+end

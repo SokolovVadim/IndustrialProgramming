@@ -1,0 +1,277 @@
+ #include <iostream>
+ #include <math.h>
+ #include <cassert>
+ #include <cstdlib>
+ //#ifdef INFINITY
+ //#endif
+
+ typedef double StackType;
+
+ struct Stack
+ {
+ 	StackType *data;
+	StackType *cnrL;
+	StackType *cnrR;
+	StackType *cnrRbefore;
+ 	size_t    size;
+ 	int       count;
+	int       top;
+	size_t    *error;
+ };
+ FILE* ferr;
+ FILE* fin;
+ FILE* fout;
+
+
+ static size_t POISON = 1534029;
+ static size_t FIASCO = 728333;
+ static size_t ERRORSIZE = 4;
+
+ void ConstructStack(Stack* stack);
+ void DestructStack (Stack* stack);
+ void FileOpen      (Stack* stack);
+ void FopenError    (Stack* stack);
+ void dump          (Stack* stack);
+ void StkAssert     (Stack* stack);
+ void PrintErr      (Stack* stack);
+ void Resize        (Stack* stack);
+
+ StackType push     (Stack *stack, StackType digit);
+ StackType pop      (Stack *stack, StackType digit);
+ StackType back     (Stack *stack);
+ StackType size     (Stack *stack);
+
+ bool clear         (Stack *stack);
+ bool WentOut       (Stack *stack);
+
+
+
+ int main()
+ {
+	 Stack             StackTool = {};
+	 FileOpen          (&StackTool);
+	 FopenError        (&StackTool);
+	 ConstructStack    (&StackTool);
+	 push              (&StackTool, 1.197);
+	 push              (&StackTool, 1.337);
+	 dump              (&StackTool);
+	 size              (&StackTool);
+	 dump              (&StackTool);
+	 PrintErr          (&StackTool);
+ }
+
+
+
+ void ConstructStack(Stack* stack)
+ {
+	 assert(stack != NULL);
+	 stack->size = POISON;
+	 fscanf_s(fin, "%d", &stack->size);
+
+	 if (stack->size == POISON)
+	 {
+		 printf("WARNING! size was not declared\n"
+		        "Please, scanf size again!");
+		 fscanf_s(fin, "%d", &stack->size);
+	 }
+
+	 stack->cnrL = (StackType*)(&(stack->size) - 1);
+
+	 stack->top = 0;
+	 stack->data = (StackType*)calloc(sizeof(StackType), stack->size);
+	 assert(stack->data);
+	 stack->cnrRbefore = stack->data + stack->size;
+ }
+
+
+
+ void FileOpen(Stack* stack)
+ {
+	 fopen_s(&fin, "INPUT.txt", "rb");
+	 fopen_s(&fout, "OUTPUT.txt", "w");
+	 assert(fin);
+	 assert(fout);
+ }
+
+
+ void FopenError(Stack* stack)
+ {
+	 stack->error = (size_t*)calloc(sizeof(size_t), ERRORSIZE);
+	 for (register short counter(0); counter < ERRORSIZE; counter++)
+		 stack->error[counter] = POISON;
+	 fopen_s(&ferr, "INPUT.txt", "rb");
+	 assert(ferr);
+ }
+
+
+
+ StackType push(Stack *stack, StackType digit)
+ {
+	 StkAssert(stack);
+	 assert(digit);
+	 if (stack->top > stack->size - 1)
+	 {
+		 fprintf(fout, "WARNING! top index is large than size\n");
+		 dump(stack);
+		 return -1;
+	 }
+	 else
+	 {
+		stack->data[stack->top++] = digit;
+		return stack->data[stack->top - 1];
+	 }
+ }
+
+
+
+ StackType pop(Stack *stack, StackType digit)
+ {
+	 if (stack->top > stack->size - 1)
+	 {
+		 fprintf(fout, "WARNING! top index is large than size\n");
+		 dump(stack);
+	 }
+	 return stack->data[(stack->top)--];//!!!!!!!!--
+ }
+
+
+ StackType back(Stack *stack)
+ {
+	 dump(stack);
+	 assert(stack->top > 0);
+	 return stack->top;
+ }
+
+
+
+ StackType size(Stack *stack)
+ {
+	 dump(stack);
+	 assert(stack->size > 0);
+	 fprintf(fout, "Stack size is: %d\n", stack->size);
+	 return stack->size;
+ }
+
+
+ bool clear(Stack *stack)
+ {
+	 dump(stack);
+	 free(stack->data);
+	 stack->size = 0;
+	 if (!stack->data)
+	 {
+		 fprintf(fout, "Stack was cleared\n");
+		 dump(stack);
+		 return true;
+	 }
+	 else
+		 return false;
+ }
+
+
+
+ void Resize(Stack* stack)
+ {
+	 assert(stack);
+	 fscanf_s(fin, "%d", &stack->size);
+	 if (stack->size < 0)
+	 {
+		 fprintf(fout, "Warning! Resize is not correct!\n"
+		               "Please, put size again\n");
+		 fscanf_s(fin, "%d", &stack->size);
+	 }
+	 realloc(stack->data, stack->size);
+	 if (stack->data < 0)
+	 {
+		 fprintf(fout, "Warning! Resize killed your stack!\n");
+		 abort();
+	 }
+ }
+
+
+ bool WentOut(Stack *stack)
+ {
+	 stack->cnrR = stack->data + 1;
+	 if (stack->cnrR != stack->cnrRbefore)
+	 {
+		 fprintf(fout, "Warning! Right canary was killed!\n");
+		 return false;
+	 }
+	 stack->cnrRbefore = stack->cnrR;
+
+ }
+
+
+ void dump(Stack *stack)
+ {
+	 if (stack)
+		 fprintf(fout, "Stack status: ok\n");
+	 else
+	 {
+		 stack->error[0] = 1;
+		 fprintf(fout, "Stack status: WARNING!\n");
+	 }
+		
+	 if (stack->data)
+		 fprintf(fout, "Array data status: ok\n");
+	 else
+	 {
+		 stack->error[1] = 1;
+		 fprintf(fout, "Array data status: WARNING!\n");
+	 }
+	 if (stack->top < stack->size)
+	 {
+		 fprintf(fout, "Stack is not overfloving\n");
+	 }
+	 else
+	 {
+		 stack->error[2] = 1;
+		 fprintf(fout, "Warning! Stack is overfloving!\n");
+	 }
+	 if (stack->top > 0)
+	 {
+		 fprintf(fout, "Stack is not empty!\n");
+	 }
+	 else
+	 {
+		 stack->error[3] = 1;
+		 fprintf(fout, "Warning! Stack is empty\n");
+	 }
+	 for (short counter(0); counter < stack->top; ++counter)
+		 fprintf(fout, "\tdata[%d]=%lg\n", counter, stack->data[counter]);
+ }
+
+
+
+ void PrintErr(Stack* stack)
+ {
+	 bool flag(true);
+	 for (short counter(0); counter < ERRORSIZE; counter++)
+	 {
+		 if (stack->error[counter]==1)
+			 fprintf(ferr, "Error code: %d", counter);
+		 else
+			 flag = false;
+	 }
+	 if (!flag)
+		 fprintf(ferr, "Status: OK\n");
+ }
+
+
+ void StkAssert(Stack* stack)
+ {
+	 assert(stack > 0);
+	 assert(stack->data > 0);
+	 assert(stack->top >= 0);
+	 assert(stack->top < stack->size);
+ }
+
+
+ void DestructStack(Stack* stack)
+ {
+	 assert(stack->data);
+	 free(stack->data);
+	 fclose(fin);
+	 fclose(fout);
+	 fprintf(fout, "A destructor was called\nStatus: free(data)\n");
+ }

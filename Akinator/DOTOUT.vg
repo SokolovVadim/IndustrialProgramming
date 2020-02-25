@@ -1,0 +1,16 @@
+digraph Tree{
+"animal?"->"Loves milk?";
+"Loves milk?"->"Loves playing games?";
+"Loves playing games?"->"Loves say Mew?";
+"Loves say Mew?"->"cat!!!!!";
+"cat!!!!!"->"loves DREC?";
+"loves DREC?"->"poltorashka!!!";
+"Loves say Mew?"->"rapper?";
+"animal?"->"human?";
+"human?"->"artist?";
+"artist?"->"Vrubel";
+"Vrubel"->"Savrasov";
+"artist?"->"Shishkin";
+"human?"->"musician?";
+
+}
